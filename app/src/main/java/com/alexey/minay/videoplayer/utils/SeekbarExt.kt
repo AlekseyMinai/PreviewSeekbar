@@ -1,4 +1,4 @@
-package com.alexey.minay.videoplayer
+package com.alexey.minay.videoplayer.utils
 
 import android.widget.SeekBar
 

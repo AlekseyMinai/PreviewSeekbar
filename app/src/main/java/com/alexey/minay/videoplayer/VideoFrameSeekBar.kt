@@ -8,6 +8,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.alexey.minay.videoplayer.databinding.LayVideoFrameSeekbarBinding
+import com.alexey.minay.videoplayer.utils.TimeUtils
+import com.alexey.minay.videoplayer.utils.setOnSeekBarChangeListener
 
 class VideoFrameSeekBar @JvmOverloads constructor(
     context: Context,
@@ -17,7 +19,8 @@ class VideoFrameSeekBar @JvmOverloads constructor(
 
     private var mCanUpdate: Boolean = true
     private var mLastTotalValue: Long = 0
-    private val mFrameWidth by lazy { resources.getDimensionPixelSize(R.dimen.frame_width) }
+    private var mDuration: Long = 0
+    private val mMaxProgress get() = mBinding.seekBar.max
 
     private val mBinding = LayVideoFrameSeekbarBinding.inflate(
         LayoutInflater.from(context),
@@ -39,7 +42,8 @@ class VideoFrameSeekBar @JvmOverloads constructor(
             },
             onProgressChanged = { _, progress, isFromUser ->
                 if (isFromUser) {
-                    mBinding.seekProgress.text = progress.toString()
+                    val seekProgress = progress * mDuration / mMaxProgress
+                    mBinding.seekProgress.text = TimeUtils.msToTime(seekProgress)
                     setSeekGroupPosition(progress)
                 }
             }
@@ -51,18 +55,15 @@ class VideoFrameSeekBar @JvmOverloads constructor(
         val totalTimeWidth = mBinding.total.width
         val seekBarWidth = mBinding.seekBar.width
         val frameWidth = mBinding.image.width
-
         val margin = resources.getDimensionPixelSize(R.dimen.margin)
         val seekbarPadding = resources.getDimensionPixelSize(R.dimen.seekbar_padding)
 
-        val maxProgress = mBinding.seekBar.max
-
         val minSeekFrameValue =
             ((frameWidth.toFloat() / 2) - progressWidth - margin - seekbarPadding) /
-                    seekBarWidth * maxProgress
+                    seekBarWidth * mMaxProgress
         val maxSeekFrameValue =
             (1 - ((frameWidth.toFloat() / 2) - totalTimeWidth - margin - seekbarPadding) /
-                    seekBarWidth) * maxProgress
+                    seekBarWidth) * mMaxProgress
 
         val params = mBinding.image.layoutParams as ConstraintLayout.LayoutParams
 
@@ -76,11 +77,14 @@ class VideoFrameSeekBar @JvmOverloads constructor(
         mBinding.image.layoutParams = params
     }
 
-    fun update(progressMs: Long, totalMs: Long) {
-        mLastTotalValue = totalMs
-        mBinding.progress.text = progressMs.toString()
-        mBinding.total.text = totalMs.toString()
-        mBinding.seekBar.progress = (progressMs * 1000 / totalMs).toInt()
+    fun update(progressMs: Long, durationMs: Long) {
+        if (durationMs < 0) return
+        mDuration = durationMs
+        if (!mCanUpdate) return
+        mLastTotalValue = durationMs
+        mBinding.progress.text = TimeUtils.msToTime(progressMs)
+        mBinding.total.text = TimeUtils.msToTime(durationMs)
+        mBinding.seekBar.progress = (progressMs * 1000 / durationMs).toInt()
     }
 
 }
