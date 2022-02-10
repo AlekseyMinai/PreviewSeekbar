@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity() {
     private val mViewModel by viewModels<VideoPlayerViewModel>()
     private val mExoplayer by lazy { ExoPlayer.Builder(this).build() }
     private var mLastUrl: String? = null
+    private var mFramePool: VideoFramePool? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,11 +26,14 @@ class MainActivity : AppCompatActivity() {
         initProgressChecker()
         initButtons()
         subscribeToViewMode()
-//        val retriever = MediaMetadataRetriever()
-//        retriever.setDataSource(this, Uri.parse(mViewModel.url))
-//        val bitmap = retriever.getFrameAtTime(1000)
 
-        //https://stackoverflow.com/questions/60655021/how-to-get-the-frame-of-video-at-specific-position-continuously-in-exoplayer
+        mBinding.videoFrameSeekBar.setFrameProvider { timeUs, width, height ->
+            lifecycleScope.launchWhenStarted {
+                val bitmap = mFramePool?.getScaledFrameAtTime(timeUs, width, height)
+                    ?: return@launchWhenStarted
+                mBinding.videoFrameSeekBar.setVideoFrame(bitmap)
+            }
+        }
     }
 
     private fun initPlayer() {
@@ -65,6 +69,9 @@ class MainActivity : AppCompatActivity() {
     private fun startVideo(url: String) {
         if (mLastUrl == url) return
         mLastUrl = url
+        mFramePool = VideoFramePool(url)
+
+        mBinding.videoFrameSeekBar.url = url
 
         val mediaItem = MediaItem.fromUri(url)
         mExoplayer.setMediaItem(mediaItem)

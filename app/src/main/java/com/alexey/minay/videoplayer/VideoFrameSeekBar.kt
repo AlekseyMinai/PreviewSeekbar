@@ -1,6 +1,7 @@
 package com.alexey.minay.videoplayer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.FrameLayout
@@ -45,6 +46,7 @@ class VideoFrameSeekBar @JvmOverloads constructor(
                     val seekProgress = progress * mDuration / mMaxProgress
                     mBinding.seekProgress.text = TimeUtils.msToTime(seekProgress)
                     setSeekGroupPosition(progress)
+                    setVideoFrameFor(seekProgress)
                 }
             }
         )
@@ -77,6 +79,14 @@ class VideoFrameSeekBar @JvmOverloads constructor(
         mBinding.image.layoutParams = params
     }
 
+    private fun setVideoFrameFor(timeUs: Long) {
+        val frameWidth = resources.getDimensionPixelSize(R.dimen.frame_width)
+        val frameHeight = resources.getDimensionPixelSize(R.dimen.frame_height)
+        mGetFrame(timeUs, frameWidth, frameHeight)
+    }
+
+    var url: String? = null
+
     fun update(progressMs: Long, durationMs: Long) {
         if (durationMs < 0) return
         mDuration = durationMs
@@ -85,6 +95,16 @@ class VideoFrameSeekBar @JvmOverloads constructor(
         mBinding.progress.text = TimeUtils.msToTime(progressMs)
         mBinding.total.text = TimeUtils.msToTime(durationMs)
         mBinding.seekBar.progress = (progressMs * 1000 / durationMs).toInt()
+    }
+
+    private var mGetFrame: (timeUs: Long, width: Int, height: Int) -> Unit = { _, _, _ -> }
+
+    fun setFrameProvider(getFrame: (timeUs: Long, width: Int, height: Int) -> Unit) {
+        mGetFrame = getFrame
+    }
+
+    fun setVideoFrame(bitmap: Bitmap) {
+        mBinding.image.setImageBitmap(bitmap)
     }
 
 }
