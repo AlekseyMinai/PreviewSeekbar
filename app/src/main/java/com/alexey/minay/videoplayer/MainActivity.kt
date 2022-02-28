@@ -68,10 +68,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun startVideo(url: String) {
         if (mLastUrl == url) return
+
         mLastUrl = url
         mFramePool = VideoFramePool(url)
-
-        mBinding.videoFrameSeekBar.url = url
 
         val mediaItem = MediaItem.fromUri(url)
         mExoplayer.setMediaItem(mediaItem)
