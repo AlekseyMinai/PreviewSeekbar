@@ -5,6 +5,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.alexey.minay.videoplayer.databinding.ActivityMainBinding
+import com.alexey.minay.videoplayer.view.VideoPreviewLoader
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import kotlinx.coroutines.delay
@@ -33,6 +34,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun initProgressChecker() {
         lifecycleScope.launchWhenStarted {
+            val videoPreviewLoader = VideoPreviewLoader(
+                coroutineScope = this,
+                context = this@MainActivity,
+                url = mViewModel.state.value.url
+            )
+
+            mBinding.videoFrameSeekBar.setVideoPreviewLoader(videoPreviewLoader)
+
             while (isActive) {
                 mBinding.videoFrameSeekBar.update(mExoplayer.currentPosition, mExoplayer.duration)
                 delay(1000)
