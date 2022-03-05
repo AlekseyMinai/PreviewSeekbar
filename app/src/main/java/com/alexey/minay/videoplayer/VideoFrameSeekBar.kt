@@ -1,7 +1,6 @@
 package com.alexey.minay.videoplayer
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,7 +13,9 @@ import com.alexey.minay.videoplayer.utils.TimeUtils
 import com.alexey.minay.videoplayer.utils.setOnSeekBarChangeListener
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.signature.ObjectKey
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 
 class VideoFrameSeekBar @JvmOverloads constructor(
@@ -27,7 +28,9 @@ class VideoFrameSeekBar @JvmOverloads constructor(
     private var mLastTotalValue: Long = 0
     private var mDuration: Long = 0
     private val mMaxProgress get() = mBinding.seekBar.max
-    private var mGetFrame: (timeUs: Long, width: Int, height: Int) -> Unit = { _, _, _ -> }
+
+    private val mFrameWidth = resources.getDimensionPixelSize(R.dimen.frame_width) / 3
+    private val mFrameHeight = resources.getDimensionPixelSize(R.dimen.frame_height) / 3
 
     private val mBinding = LayVideoFrameSeekbarBinding.inflate(
         LayoutInflater.from(context),
@@ -87,8 +90,9 @@ class VideoFrameSeekBar @JvmOverloads constructor(
 
     private var mLastNormalized: Long? = null
 
-    private fun loadBitmap(url: String, timeUs: Long) {
+    private fun loadBitmap(url: String, timeUs: Long, width: Int, height: Int, canSet: Boolean) {
         val options: RequestOptions = RequestOptions().frame(timeUs * 1000)
+            .override(width, height)
 
         val previous = mBinding.image.drawable
 
@@ -96,21 +100,28 @@ class VideoFrameSeekBar @JvmOverloads constructor(
             .load(url)
             .placeholder(previous)
             .centerCrop()
-            //.signature(ObjectKey(timeUs))
             .apply(options)
-            .into(mBinding.image)
+            .apply {
+                when {
+                    canSet -> into(mBinding.image)
+                    else -> preload()
+                }
+            }
+
     }
 
-    private fun setVideoFrameFor(timeUs: Long) {
-        val url =
-            "https://rr5---sn-5hne6nz6.googlevideo.com/videoplayback?expire=1646099073&ei=ISYdYt-CCYTXx_APx6SI0Ag&ip=91.90.122.11&id=o-AGVY5_Yh1FTCVp-PepOQa2baNzb8G_W4Lf6tR91NiDHR&itag=18&source=youtube&requiressl=yes&vprv=1&mime=video%2Fmp4&ns=6FbGONfo9a9zOq6la4vlgWMG&gir=yes&clen=95781657&ratebypass=yes&dur=1693.152&lmt=1645633965252739&fexp=24001373,24007246&c=WEB&txp=5430434&n=pSzEunD-bfNUuA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cvprv%2Cmime%2Cns%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AOq0QJ8wRAIgdX6_BZg4i9gtZ5UWTta_AGQoeLWC3H7GeNxthSkcUeMCIFC6f0LN1oX8pSJpub199yKDRLwa-i2wtv3ZYi_EBoAZ&redirect_counter=1&cm2rm=sn-1gie67e&req_id=232ab90b8760a3ee&cms_redirect=yes&cmsv=e&mh=HJ&mip=136.169.211.3&mm=34&mn=sn-5hne6nz6&ms=ltu&mt=1646077183&mv=u&mvi=5&pl=21&lsparams=mh,mip,mm,mn,ms,mv,mvi,pl&lsig=AG3C_xAwRQIgKGtCeHjTdl6_hXdmDp44qZDqzzYJeZ72CCoiYmLZ2WsCIQCPAulEJ4ixUmyLbZsjmaRgWHeeo-MiY8XqK9BVbHJ3qA%3D%3D"
+    private fun preload(durationMs: Long) {
+        for (i in 0..durationMs) {
+            setVideoFrameFor(i, false)
+        }
+    }
 
-        val frameWidth = resources.getDimensionPixelSize(R.dimen.frame_width) / 4
-        val frameHeight = resources.getDimensionPixelSize(R.dimen.frame_height) / 4
+    private fun setVideoFrameFor(timeUs: Long, canSet: Boolean = true) {
+        val url ="https://rr11---sn-n8v7kn7l.googlevideo.com/videoplayback?expire=1646188968&ei=SIUeYoThIeOrxN8P7OaXkAM&ip=185.108.106.210&id=o-AP3PWwkWe2pU2BfYY2Xfyh-Z2mKBgx-6i7Lxpq_BpO56&itag=18&source=youtube&requiressl=yes&vprv=1&mime=video%2Fmp4&ns=RJDG4tN8vNxTMSg7vcUiEC8G&gir=yes&clen=148693097&ratebypass=yes&dur=2012.437&lmt=1645850678380880&fexp=24001373,24007246,24162927&c=WEB&txp=4430434&n=icKd1GdSKd0GYA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cvprv%2Cmime%2Cns%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AOq0QJ8wRQIgQhoGR32bcRDCD974VOrXlPz2831ZPtVt5YHq-bzhM8ECIQCCQuNxbK-o7ULIzX2LQsX5jRlXWkUQqlTd5AhXM5G73A%3D%3D&redirect_counter=1&rm=sn-5hness7l&req_id=c3885de10576a3ee&cms_redirect=yes&cmsv=e&ipbypass=yes&mh=s-&mip=136.169.211.3&mm=31&mn=sn-n8v7kn7l&ms=au&mt=1646167259&mv=m&mvi=11&pl=24&lsparams=ipbypass,mh,mip,mm,mn,ms,mv,mvi,pl&lsig=AG3C_xAwRgIhAI82cxiH-ySZPoh4WO9d5FVzI-sRJz6aYM2s3agFhFMWAiEAo3K8JhDq1wNzEmlmTTQemH-r0nIuufA-twY3MrjzhL4%3D"
 
         val coefficient = when {
-            mDuration < 50000 -> 1
-            else -> mDuration / 50
+            mDuration < 30000 -> 1
+            else -> mDuration / 30
         }
 
         val normalized = timeUs - timeUs % coefficient
@@ -121,26 +132,25 @@ class VideoFrameSeekBar @JvmOverloads constructor(
 
         Log.d("setVideoFrameFor", "setVideoFrameFor $timeUs $normalized $coefficient")
 
-        loadBitmap(url, normalized)
-        //mGetFrame(normalized, frameWidth, frameHeight)
+        loadBitmap(url, normalized, mFrameWidth, mFrameHeight, canSet)
     }
 
     fun update(progressMs: Long, durationMs: Long) {
         if (durationMs < 0) return
+
+        //temp
+        if (mDuration == 0L) {
+            GlobalScope.launch {
+                preload(durationMs * 1000)
+            }
+        }
+
         mDuration = durationMs
         if (!mCanUpdate) return
         mLastTotalValue = durationMs
         mBinding.progress.text = TimeUtils.msToTime(progressMs)
         mBinding.total.text = TimeUtils.msToTime(durationMs)
         mBinding.seekBar.progress = (progressMs * 1000 / durationMs).toInt()
-    }
-
-    fun setFrameProvider(getFrame: (timeUs: Long, width: Int, height: Int) -> Unit) {
-        mGetFrame = getFrame
-    }
-
-    fun setVideoFrame(bitmap: Bitmap) {
-        mBinding.image.setImageBitmap(bitmap)
     }
 
 }

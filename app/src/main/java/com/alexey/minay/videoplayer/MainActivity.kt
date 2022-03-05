@@ -17,7 +17,6 @@ class MainActivity : AppCompatActivity() {
     private val mViewModel by viewModels<VideoPlayerViewModel>()
     private val mExoplayer by lazy { ExoPlayer.Builder(this).build() }
     private var mLastUrl: String? = null
-    private var mFramePool: VideoFramePool? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,14 +25,6 @@ class MainActivity : AppCompatActivity() {
         initProgressChecker()
         initButtons()
         subscribeToViewMode()
-
-        mBinding.videoFrameSeekBar.setFrameProvider { timeUs, width, height ->
-            lifecycleScope.launchWhenStarted {
-                val bitmap = mFramePool?.getScaledFrameAtTime(timeUs, width, height)
-                    ?: return@launchWhenStarted
-                mBinding.videoFrameSeekBar.setVideoFrame(bitmap)
-            }
-        }
     }
 
     private fun initPlayer() {
@@ -70,7 +61,6 @@ class MainActivity : AppCompatActivity() {
         if (mLastUrl == url) return
 
         mLastUrl = url
-        mFramePool = VideoFramePool(url)
 
         val mediaItem = MediaItem.fromUri(url)
         mExoplayer.setMediaItem(mediaItem)
