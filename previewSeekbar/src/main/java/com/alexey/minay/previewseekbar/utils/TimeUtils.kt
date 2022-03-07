@@ -1,4 +1,4 @@
-package com.alexey.minay.videoplayer.utils
+package com.alexey.minay.previewseekbar.utils
 
 import java.util.concurrent.TimeUnit
 

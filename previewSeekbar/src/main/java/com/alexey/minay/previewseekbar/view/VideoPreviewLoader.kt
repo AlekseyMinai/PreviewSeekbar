@@ -1,8 +1,8 @@
-package com.alexey.minay.videoplayer.view
+package com.alexey.minay.previewseekbar.view
 
 import android.content.Context
 import android.widget.ImageView
-import com.alexey.minay.videoplayer.R
+import com.alexey.minay.previewseekbar.R
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +17,6 @@ class VideoPreviewLoader(
 
     private var mLastInterval: Long? = null
     private var mDuration: Long? = null
-
     private val mFrameWidth = context.resources.getDimensionPixelSize(R.dimen.frame_width) / 3
     private val mFrameHeight = context.resources.getDimensionPixelSize(R.dimen.frame_height) / 3
 

@@ -1,23 +1,17 @@
-package com.alexey.minay.videoplayer.view
+package com.alexey.minay.previewseekbar.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import com.alexey.minay.videoplayer.R
-import com.alexey.minay.videoplayer.databinding.LayVideoFrameSeekbarBinding
-import com.alexey.minay.videoplayer.utils.TimeUtils
-import com.alexey.minay.videoplayer.utils.setOnSeekBarChangeListener
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.alexey.minay.previewseekbar.R
+import com.alexey.minay.previewseekbar.databinding.LayVideoFrameSeekbarBinding
+import com.alexey.minay.previewseekbar.utils.TimeUtils
+import com.alexey.minay.previewseekbar.utils.setOnSeekBarChangeListener
 import java.lang.RuntimeException
-
 
 class VideoFrameSeekBar @JvmOverloads constructor(
     context: Context,

@@ -1,7 +1,6 @@
-package com.alexey.minay.videoplayer.utils
+package com.alexey.minay.previewseekbar.utils
 
 import android.widget.SeekBar
-
 
 fun SeekBar.setOnSeekBarChangeListener(
     onStartTrackingTouch: (seekbar: SeekBar?) -> Unit = {},

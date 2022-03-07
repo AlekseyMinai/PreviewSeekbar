@@ -32,7 +32,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom">
 
-        <com.alexey.minay.videoplayer.view.VideoFrameSeekBar
+        <com.alexey.minay.previewseekbar.view.VideoFrameSeekBar
             android:id="@+id/videoFrameSeekBar"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

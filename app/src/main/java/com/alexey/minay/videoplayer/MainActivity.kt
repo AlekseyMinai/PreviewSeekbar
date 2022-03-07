@@ -6,9 +6,9 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.alexey.minay.previewseekbar.view.VideoPreviewLoader
 import com.alexey.minay.videoplayer.databinding.ActivityMainBinding
 import com.alexey.minay.videoplayer.utils.isPortrait
-import com.alexey.minay.videoplayer.view.VideoPreviewLoader
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import kotlinx.coroutines.delay
