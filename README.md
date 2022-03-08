@@ -1,4 +1,4 @@
 # PreviewSeekbar
 adding
 
-implementation 'com.github.AlekseyMinai:PreviewSeekbar:Tag'
+`implementation 'com.github.AlekseyMinai:PreviewSeekbar:Tag'`
