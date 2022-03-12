@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.alexey.minay.previewseekbar.view.VideoPreviewLoader
 import com.alexey.minay.videoplayer.databinding.ActivityMainBinding
-import com.alexey.minay.videoplayer.utils.isPortrait
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import kotlinx.coroutines.delay
@@ -39,59 +38,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun initGesture() {
         val detector =
-            ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
-
-                var totalScale = 1f
-
-                override fun onScale(p0: ScaleGestureDetector): Boolean {
-                    val playerHeight = mBinding.player.height
-                    val playerWidth = mBinding.player.width
-                    val screenHeight = mBinding.root.height
-                    val screenWidth = mBinding.root.width
-
-                    val newScale = totalScale * p0.scaleFactor
-
-                    if (isPortrait()) {
-                        if (
-                            playerHeight < playerWidth ||
-                            playerHeight >= screenHeight ||
-                            playerHeight * newScale > screenHeight
-                        ) {
-                            return false
-                        }
-                    } else {
-                        if (
-                            playerWidth < playerHeight ||
-                            playerWidth >= screenWidth ||
-                            playerWidth * newScale > screenWidth
-                        ) return false
-                    }
-
-                    if (newScale < 1) return false
-
-                    totalScale = newScale
-                    mBinding.player.scaleX = totalScale
-                    mBinding.player.scaleY = totalScale
-                    return true
-                }
-
-                override fun onScaleBegin(p0: ScaleGestureDetector): Boolean {
-                    mBinding.gestureInterceptor.setBackgroundResource(R.drawable.background_video_frame)
-                    mBinding.player.pivotX = mBinding.root.width.toFloat() / 2
-                    mBinding.player.pivotY = mBinding.root.height.toFloat() / 2
-                    return true
-                }
-
-                override fun onScaleEnd(p0: ScaleGestureDetector) {
-                    mBinding.gestureInterceptor.setBackgroundResource(0)
-                }
-
-            })
+            ScaleGestureDetector(
+                this, VideoScaleDetector(
+                    player = mBinding.player,
+                    root = mBinding.root,
+                    gestureInterceptor = mBinding.gestureInterceptor
+                )
+            )
 
         mBinding.gestureInterceptor.setOnTouchListener { _, motionEvent ->
-            detector.onTouchEvent(
-                motionEvent
-            )
+            detector.onTouchEvent(motionEvent)
         }
     }
 

@@ -62,7 +62,7 @@ class VideoFrameSeekBar @JvmOverloads constructor(
 
         if (mDuration == 0L) {
             mVideoPreviewLoader ?: throw RuntimeException("Need to set previewLoader")
-            mVideoPreviewLoader?.preload(durationMs)
+            mVideoPreviewLoader?.preload(durationMs, mBinding.image)
         }
 
         mDuration = durationMs
@@ -101,7 +101,7 @@ class VideoFrameSeekBar @JvmOverloads constructor(
     }
 
     private fun setVideoFrameFor(seekProgress: Long) {
-        mVideoPreviewLoader?.load(seekProgress, mBinding.image)
+        mVideoPreviewLoader?.load(seekProgress)
     }
 
 }

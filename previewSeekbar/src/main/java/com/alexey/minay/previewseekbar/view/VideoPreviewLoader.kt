@@ -1,13 +1,11 @@
 package com.alexey.minay.previewseekbar.view
 
 import android.content.Context
-import android.widget.ImageView
 import com.alexey.minay.previewseekbar.R
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.ui.PlayerView
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class VideoPreviewLoader(
     private val coroutineScope: CoroutineScope,
@@ -20,46 +18,29 @@ class VideoPreviewLoader(
     private val mFrameWidth = context.resources.getDimensionPixelSize(R.dimen.frame_width) / 3
     private val mFrameHeight = context.resources.getDimensionPixelSize(R.dimen.frame_height) / 3
 
-    fun preload(durationMs: Long) {
-        mDuration = durationMs
+    private val mExoplayer by lazy { ExoPlayer.Builder(context).build() }
+    private var mPlayerView: PlayerView? = null
 
-        coroutineScope.launch(Dispatchers.IO) {
-            for (i in 0..durationMs * 1000) {
-                val interval = getInterval(i, durationMs)
-                loadBitmap(interval)
-            }
-        }
+    fun preload(durationMs: Long, playerView: PlayerView) {
+        mDuration = durationMs
+        mPlayerView = playerView
+        mPlayerView?.player = mExoplayer
+
+        val mediaItem = MediaItem.fromUri(url)
+        mExoplayer.setMediaItem(mediaItem)
+        mExoplayer.prepare()
     }
 
-    fun load(timeUs: Long, imageView: ImageView) {
+    fun load(timeUs: Long) {
         mDuration?.let {
             val interval = getInterval(timeUs, it)
-            loadBitmap(interval, imageView)
+
+            if (mLastInterval == interval) return
+
+            mLastInterval = interval
+
+            mExoplayer.seekTo(interval)
         }
-    }
-
-    private fun loadBitmap(
-        interval: Long,
-        imageView: ImageView? = null
-    ) {
-        if (interval == mLastInterval) return
-
-        mLastInterval = interval
-
-        val options: RequestOptions = RequestOptions().frame(interval * 1000)
-            .override(mFrameWidth, mFrameHeight)
-
-        Glide.with(context).asBitmap()
-            .load(url)
-            .placeholder(imageView?.drawable)
-            .centerCrop()
-            .apply(options)
-            .apply {
-                when (imageView) {
-                    null -> preload()
-                    else -> into(imageView)
-                }
-            }
     }
 
     private fun getInterval(timeMs: Long, durationMs: Long): Long {

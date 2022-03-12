@@ -17,6 +17,8 @@
     <FrameLayout
         android:id="@+id/gestureInterceptor"
         android:layout_width="match_parent"
+        android:alpha="0"
+        android:background="@drawable/background_video_frame"
         android:layout_height="match_parent"/>
 
     <ImageView
