@@ -1,5 +1,6 @@
 package com.alexey.minay.videoplayer
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.ScaleGestureDetector
 import android.view.WindowManager
@@ -20,6 +21,13 @@ class MainActivity : AppCompatActivity() {
     private val mViewModel by viewModels<VideoPlayerViewModel>()
     private val mExoplayer by lazy { ExoPlayer.Builder(this).build() }
     private var mLastUrl: String? = null
+    private val mVideoScaleDetector by lazy {
+        VideoScaleDetector(
+            player = mBinding.player,
+            root = mBinding.root,
+            gestureInterceptor = mBinding.gestureInterceptor
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,15 +44,13 @@ class MainActivity : AppCompatActivity() {
         subscribeToViewMode()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        mVideoScaleDetector.reset()
+    }
+
     private fun initGesture() {
-        val detector =
-            ScaleGestureDetector(
-                this, VideoScaleDetector(
-                    player = mBinding.player,
-                    root = mBinding.root,
-                    gestureInterceptor = mBinding.gestureInterceptor
-                )
-            )
+        val detector = ScaleGestureDetector(this, mVideoScaleDetector)
 
         mBinding.gestureInterceptor.setOnTouchListener { _, motionEvent ->
             detector.onTouchEvent(motionEvent)

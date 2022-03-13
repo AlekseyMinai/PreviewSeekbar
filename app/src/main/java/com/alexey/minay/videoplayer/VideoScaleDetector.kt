@@ -76,6 +76,17 @@ class VideoScaleDetector(
         animateScale()
     }
 
+    fun reset() {
+        mTotalScale = DEFAULT_SCALE
+        player.scaleX = mTotalScale
+        player.scaleY = mTotalScale
+    }
+
+    fun dismiss() {
+        mPlayerValueAnimator?.cancel()
+        mFrameValueAnimator?.cancel()
+    }
+
     private fun canNotScale(): Boolean {
         return if (player.context.isPortrait()) {
             mPlayerHeight < mPlayerWidth
