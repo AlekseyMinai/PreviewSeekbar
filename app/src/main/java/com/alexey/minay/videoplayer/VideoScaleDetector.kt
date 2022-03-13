@@ -15,30 +15,30 @@ class VideoScaleDetector(
     private var mFrameValueAnimator: ValueAnimator? = null
     private var mPlayerValueAnimator: ValueAnimator? = null
 
-    override fun onScale(p0: ScaleGestureDetector): Boolean {
-        val playerHeight = player.height
-        val playerWidth = player.width
-        val screenHeight = root.height
-        val screenWidth = root.width
+    private val mPlayerHeight get() = player.height
+    private val mPlayerWidth get() = player.width
+    private val mScreenHeight get() = root.height
+    private val mScreenWidth get() = root.width
 
+    override fun onScale(p0: ScaleGestureDetector): Boolean {
         var newScale = mTotalScale * p0.scaleFactor
 
         if (player.context.isPortrait()) {
-            if (playerHeight < playerWidth) {
+            if (mPlayerHeight < mPlayerWidth) {
                 return false
             }
 
-            if (playerHeight * newScale >= screenHeight) {
-                newScale = screenHeight.toFloat() / playerHeight
+            if (mPlayerHeight * newScale >= mScreenHeight) {
+                newScale = mScreenHeight.toFloat() / mPlayerHeight
             }
 
         } else {
-            if (playerWidth < playerHeight) {
+            if (mPlayerWidth < mPlayerHeight) {
                 return false
             }
 
-            if (playerWidth * newScale >= screenWidth) {
-                newScale = screenWidth.toFloat() / playerWidth
+            if (mPlayerWidth * newScale >= mScreenWidth) {
+                newScale = mScreenWidth.toFloat() / mPlayerWidth
             }
         }
 
@@ -53,6 +53,10 @@ class VideoScaleDetector(
     }
 
     override fun onScaleBegin(p0: ScaleGestureDetector): Boolean {
+        if (canNotScale()) {
+            return false
+        }
+
         animateFrame(0f, 0.4f)
 
         player.pivotX = root.width.toFloat() / 2
@@ -61,11 +65,23 @@ class VideoScaleDetector(
     }
 
     override fun onScaleEnd(p0: ScaleGestureDetector) {
+        if (canNotScale()) {
+            return
+        }
+
         when (mTotalScale) {
             DEFAULT_SCALE -> animateFrame(0.4f, 0f)
             else -> animateFrame(0.4f, 0.6f, 0.4f, 0f)
         }
-        anim()
+        animateScale()
+    }
+
+    private fun canNotScale(): Boolean {
+        return if (player.context.isPortrait()) {
+            mPlayerHeight < mPlayerWidth
+        } else {
+            mPlayerWidth < mPlayerHeight
+        }
     }
 
     private fun animateFrame(vararg values: Float) {
@@ -77,27 +93,26 @@ class VideoScaleDetector(
         mFrameValueAnimator?.start()
     }
 
-    private fun anim() {
-        val playerHeight = player.height
-        val playerWidth = player.width
-        val screenHeight = root.height
-        val screenWidth = root.width
-        if (player.context.isPortrait()) {
-
-        } else {
-            val maxScale = screenWidth.toFloat() / playerWidth
+    private fun animateScale() {
+        fun changeScale(maxScale: Float) {
             if (maxScale - mTotalScale < (maxScale - DEFAULT_SCALE) / 2) {
                 animatePlayer(mTotalScale, maxScale)
             } else {
                 animatePlayer(mTotalScale, DEFAULT_SCALE)
             }
         }
+
+        val maxScale = when {
+            player.context.isPortrait() -> mScreenHeight.toFloat() / mPlayerHeight
+            else -> mScreenWidth.toFloat() / mPlayerWidth
+        }
+        changeScale(maxScale)
     }
 
     private fun animatePlayer(vararg values: Float) {
         mPlayerValueAnimator?.cancel()
         mPlayerValueAnimator = ValueAnimator.ofFloat(*values)
-        mPlayerValueAnimator?.duration = 100
+        mPlayerValueAnimator?.duration = PLAYER_ANIMATE_DURATION
         mPlayerValueAnimator?.addUpdateListener { valueAnimation ->
             mTotalScale = valueAnimation.animatedValue as Float
             player.scaleX = mTotalScale
@@ -107,6 +122,7 @@ class VideoScaleDetector(
     }
 
     companion object {
+        private const val PLAYER_ANIMATE_DURATION = 100L
         private const val DEFAULT_SCALE = 1.0f
     }
 
