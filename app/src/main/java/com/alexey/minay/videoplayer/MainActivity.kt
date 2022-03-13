@@ -42,6 +42,10 @@ class MainActivity : AppCompatActivity() {
         initProgressChecker()
         initButtons()
         subscribeToViewMode()
+
+        mBinding.seekForwardClickInterceptor.setOnClickListener(
+            MultiTabListener(lifecycleScope, mBinding.seekForwardClickInterceptor)
+        )
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
